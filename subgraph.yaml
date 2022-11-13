@@ -1,0 +1,32 @@
+specVersion: 0.0.1
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: MembershipTemplate
+    network: mumbai
+    source:
+      address: "0x58520f9087761d60dcf9895bd5dad7f2bb76f01d"
+      abi: MembershipTemplate
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - DeployDao
+        - SetupDao
+        - DeployToken
+        - InstalledApp
+      abis:
+        - name: MembershipTemplate
+          file: ./abis/MembershipTemplate.json
+      eventHandlers:
+        - event: DeployDao(address)
+          handler: handleDeployDao
+        - event: SetupDao(address)
+          handler: handleSetupDao
+        - event: DeployToken(address)
+          handler: handleDeployToken
+        - event: InstalledApp(address,bytes32)
+          handler: handleInstalledApp
+      file: ./src/membership-template.ts

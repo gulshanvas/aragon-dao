@@ -2,55 +2,55 @@ import { BigInt } from "@graphprotocol/graph-ts"
 import {
   MembershipTemplate,
   DeployDao,
-  SetupDao,
   DeployToken,
   InstalledApp
 } from "../generated/MembershipTemplate/MembershipTemplate"
-import { ExampleEntity } from "../generated/schema"
+import { Token, Voting, User } from "../generated/schema";
+import { createNewDao, createToken } from "./helper";
 
 export function handleDeployDao(event: DeployDao): void {
-  // Entities can be loaded from the store using a string ID; this ID
-  // needs to be unique across all entities of the same type
-  let entity = ExampleEntity.load(event.transaction.from.toHex())
+  /**
+   * Create new instance of MembershipDAO if not already created :
+   *    - call `createNewDao` method from helper function.
+   */
 
-  // Entities only exist after they have been saved to the store;
-  // `null` checks allow to create entities on demand
-  if (!entity) {
-    entity = new ExampleEntity(event.transaction.from.toHex())
-
-    // Entity fields can be set using simple assignments
-    entity.count = BigInt.fromI32(0)
-  }
-
-  // BigInt and BigDecimal math are supported
-  entity.count = entity.count + BigInt.fromI32(1)
-
-  // Entity fields can be set based on event parameters
-  entity.dao = event.params.dao
-
-  // Entities can be written to the store with `.save()`
-  entity.save()
-
-  // Note: If a handler doesn't require existing field values, it is faster
-  // _not_ to load the entity from the store. Instead, create it fresh with
-  // `new Entity(...)`, set the fields that should be updated and save the
-  // entity back to the store. Fields that were not set or unset remain
-  // unchanged, allowing for partial updates to be applied.
-
-  // It is also possible to access smart contracts from mappings. For
-  // example, the contract that has emitted the event can be connected to
-  // with:
-  //
-  // let contract = Contract.bind(event.address)
-  //
-  // The following functions can then be called on this contract to access
-  // state variables and other data:
-  //
-  // - contract.newToken(...)
 }
 
-export function handleSetupDao(event: SetupDao): void {}
+export function handleDeployToken(event: DeployToken): void {
+  /**
+   * Store the token created by the DAO : 
+   *    - call `createNewDao` method from helper function.
+   *    - call `createToken` method from helper function.
+   * 
+   * Mark token address for tracking using `Token` template.
+   */
+}
 
-export function handleDeployToken(event: DeployToken): void {}
+export function handleInstalledApp(event: InstalledApp): void {
 
-export function handleInstalledApp(event: InstalledApp): void {}
+  /**
+   * Voting APP hash id is `0x9fa3927f639745e587912d4b0fea7ef9013bf93fb907d29faeab57417ba6e1d4`
+   * Whenever event param's appId has above matching value, Voting applicatoin is enabled for the DAO.
+   * So, we would track Voting proxy contract generated through Deploy DAO transaction.
+   * Voting proxy would handle new proposal creation, voting and execution of the proposal.
+   * 
+   * Create `Voting` instance.
+   * Start tracking of created `Voting` contract address using `Voting` template. 
+   */
+
+}
+
+export function handleDAOTokenTransfer(): void {
+  /**
+   * 
+   * Create new `User` instance with user address and DAO as unique identifier.
+   * Load `MembershipDAO` using event's address.
+   * 
+   *  - When DAO creator transfers tokens to User, `from` param is event is ZERO address.
+   * So whenever this handler is called having `from` address as ZERO, then create User
+   * instance.
+   *  - Increments `totalHolders` value by `1` in MembershipDAO instance.
+   * 
+   */
+
+}

@@ -2,6 +2,9 @@
   "mumbai": {
     "MembershipTemplate": {
       "address": "0x58520f9087761d60dcf9895bd5dad7f2bb76f01d"
+    },
+    "ReputataionTemplate": {
+      "address": "0xa1d9f90ae46966c7a83451849ac025949a676f1f"
     }
   }
 }

@@ -1,4 +1,4 @@
-specVersion: 0.0.1
+specVersion: 0.0.4
 schema:
   file: ./schema.graphql
 dataSources:
@@ -10,7 +10,7 @@ dataSources:
       abi: MembershipTemplate
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - DeployDao
@@ -23,10 +23,49 @@ dataSources:
       eventHandlers:
         - event: DeployDao(address)
           handler: handleDeployDao
-        - event: SetupDao(address)
-          handler: handleSetupDao
         - event: DeployToken(address)
           handler: handleDeployToken
         - event: InstalledApp(address,bytes32)
           handler: handleInstalledApp
       file: ./src/membership-template.ts
+templates:
+  - name: Voting
+    kind: ethereum/contract
+    network: mumbai
+    source:
+      abi: Voting
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/voting.ts
+      entities:
+        - Voting
+      abis:
+        - name: Voting
+          file: ./abis/Voting.json
+      eventHandlers:
+        - event: StartVote(indexed uint256,indexed address,string)
+          handler: handleNewVoteProposal
+        - event: CastVote(indexed uint256,indexed address,bool,uint256)
+          handler: handleVoteCasted
+        - event: ExecuteVote(indexed uint256)
+          handler: handleVoteExecuted
+  - name: Token
+    kind: ethereum/contract
+    network: mumbai
+    source:
+      abi: Token
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/membership-template.ts
+      entities:
+        - Token
+      abis:
+        - name: Token
+          file: ./abis/Token.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleDAOTokenTransfer

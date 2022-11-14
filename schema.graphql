@@ -1,5 +1,54 @@
-type ExampleEntity @entity {
-  id: ID!
-  count: BigInt!
-  dao: Bytes! # address
+enum VoteStatus {
+    NA,
+    yes,
+    no,
+}
+
+type MembershipDAO @entity {
+    id: ID! # Address of new created Membership DAO
+    token: Bytes! # Address of DAO token
+    voting: Bytes! # Voting contract address
+    users: [User!]! @derivedFrom(field: "dao")
+    creator: Bytes!
+}
+
+type Token @entity {
+    id: ID! # Token address
+    name: String!
+    symbol: String!
+    decimals: BigInt!
+}
+
+type Voting @entity {
+    id: ID! # Address of voting contract
+    currentVoteLength: BigInt!
+    creator: Bytes!
+    totalHolders: BigInt!
+}
+
+type Vote @entity {
+    id: ID! # Address of voting contract + Vote Id
+    voteId: BigInt
+    startDate: BigDecimal!
+    snapshotBlock: BigDecimal!
+    quorumRequired: BigDecimal!
+    totalYes: BigDecimal!
+    totalNo: BigDecimal!
+    executionScript: String!
+    executed: Boolean
+    metadata: String!
+}
+
+type UserVote @entity {
+    id: ID! # User address + MembershipDAO address + Vote Id
+    dao: Bytes!
+    voteId: BigInt!
+    voted: Boolean
+    voteStatus: VoteStatus
+}
+
+type User @entity {
+    id: ID! # User address + MembershipDAO address
+    dao: MembershipDAO!
+    userAddress: Bytes!
 }

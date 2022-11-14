@@ -38,5 +38,6 @@ export function handleVoteExecuted(event: ExecuteVote): void {
   /**
    * Loads Vote instance using event's address.
    *  - Mark `executed` field as true.
+   *  - Update `executionBlock` field from event's block object
    */
 }

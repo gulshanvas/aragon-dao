@@ -10,6 +10,7 @@ type MembershipDAO @entity {
     voting: Bytes! # Voting contract address
     users: [User!]! @derivedFrom(field: "dao")
     creator: Bytes!
+    totalHolders: BigInt!
 }
 
 type Token @entity {
@@ -23,7 +24,6 @@ type Voting @entity {
     id: ID! # Address of voting contract
     currentVoteLength: BigInt!
     creator: Bytes!
-    totalHolders: BigInt!
 }
 
 type Vote @entity {
@@ -37,6 +37,7 @@ type Vote @entity {
     executionScript: String!
     executed: Boolean
     metadata: String!
+    executionBlock: BigInt!
 }
 
 type UserVote @entity {

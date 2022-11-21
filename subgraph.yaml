@@ -8,7 +8,7 @@ dataSources:
     source:
       address: "0x58520f9087761d60dcf9895bd5dad7f2bb76f01d"
       abi: MembershipTemplate
-      startBlock: 29095640
+      startBlock: 29095645
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6

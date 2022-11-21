@@ -124,14 +124,15 @@ export function handleDAOTokenTransfer(event: Transfer): void {
   }
 
   const userAddress = event.params.to.toHexString();
-  let userInstance = User.load(userAddress);
-  if (userInstance == null && event.params.from == ZERO_ADDRESS) {
-    userInstance = new User(userAddress);
-    if (transaction) {
+  if (transaction && transaction.dao) {
+    const userId = userAddress + "-" + transaction.dao.toHexString();
+    let userInstance = User.load(userId);
+    if (userInstance == null && event.params.from == ZERO_ADDRESS) {
+      userInstance = new User(userId);
       userInstance.dao = transaction.dao.toHexString();
+      userInstance.userAddress = event.params.to;
+      userInstance.save();
     }
-    userInstance.userAddress = event.params.to;
-    userInstance.save();
   }
 
 }

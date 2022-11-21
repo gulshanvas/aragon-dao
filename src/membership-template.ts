@@ -1,18 +1,29 @@
-import { BigInt } from "@graphprotocol/graph-ts"
+import { BigInt, log } from "@graphprotocol/graph-ts"
 import {
   MembershipTemplate,
   DeployDao,
   DeployToken,
   InstalledApp
-} from "../generated/MembershipTemplate/MembershipTemplate"
-import { Token, Voting, User } from "../generated/schema";
+} from "../generated/MembershipTemplate/MembershipTemplate";
+import { Voting as VotingTemplate, Token as TokenTemplate } from "../generated/templates";
+import { Token, Voting, User, TransactionInfo, MembershipDao } from "../generated/schema";
 import { createNewDao, createToken } from "./helper";
+import { BIG_INT_ONE, BIG_INT_ZERO, VOTING_APP_HASH_ID, ZERO_ADDRESS } from "./constants";
+import { Transfer } from "../generated/templates/Token/Token";
 
 export function handleDeployDao(event: DeployDao): void {
   /**
-   * Create new instance of MembershipDAO if not already created :
+   * Create new instance of MembershipDao if not already created :
    *    - call `createNewDao` method from helper function.
    */
+
+  createNewDao(event);
+
+  const transaction = new TransactionInfo(event.transaction.hash.toHexString());
+  transaction.dao = event.params.dao;
+  transaction.voting = ZERO_ADDRESS;
+
+  transaction.save();
 
 }
 
@@ -24,6 +35,32 @@ export function handleDeployToken(event: DeployToken): void {
    * 
    * Mark token address for tracking using `Token` template.
    */
+
+  createToken(event.params.token);
+
+  let transaction = TransactionInfo.load(event.transaction.hash.toHexString());
+
+  if (transaction && transaction.dao !== null) {
+    let membershipDao = MembershipDao.load(transaction.dao.toHexString());
+    if (membershipDao != null) {
+      membershipDao.token = event.params.token;
+      membershipDao.save();
+    } else {
+      log.info('in handleDeployToken {} ', [transaction.dao.toHexString()]);
+      membershipDao = new MembershipDao(transaction.dao.toHexString());
+      membershipDao.token = event.params.token;
+      membershipDao.save();
+    }
+  } else {
+    transaction = new TransactionInfo(event.transaction.hash.toHexString());
+    transaction.token = event.params.token;
+    transaction.dao = ZERO_ADDRESS;
+    transaction.voting = ZERO_ADDRESS;
+    transaction.save();
+  }
+
+  TokenTemplate.create(event.params.token);
+
 }
 
 export function handleInstalledApp(event: InstalledApp): void {
@@ -38,19 +75,63 @@ export function handleInstalledApp(event: InstalledApp): void {
    * Start tracking of created `Voting` contract address using `Voting` template. 
    */
 
+  if (event.params.appId.equals(VOTING_APP_HASH_ID)) {
+    const votingInstance = new Voting(event.params.appProxy.toHexString());
+    votingInstance.currentVoteLength = BIG_INT_ZERO;
+    votingInstance.creator = event.transaction.from;
+
+    const transaction = TransactionInfo.load(event.transaction.hash.toHexString());
+
+    if (transaction && transaction.dao !== null) {
+      votingInstance.dao = transaction.dao;
+      transaction.voting = event.params.appProxy;
+      transaction.save();
+
+      const membershipDao = MembershipDao.load(transaction.dao.toHexString());
+      if (membershipDao != null) {
+        membershipDao.voting = transaction.voting;
+        membershipDao.save();
+      }
+    }
+
+    votingInstance.save();
+  }
+
+  VotingTemplate.create(event.params.appProxy);
+
 }
 
-export function handleDAOTokenTransfer(): void {
+export function handleDAOTokenTransfer(event: Transfer): void {
   /**
    * 
    * Create new `User` instance with user address and DAO as unique identifier.
-   * Load `MembershipDAO` using event's address.
+   * Load `MembershipDao` using event's address.
    * 
    *  - When DAO creator transfers tokens to User, `from` param is event is ZERO address.
    * So whenever this handler is called having `from` address as ZERO, then create User
    * instance.
-   *  - Increments `totalHolders` value by `1` in MembershipDAO instance.
-   * 
+   *  - Increments `totalHolders` value by `1` in MembershipDao instance.
    */
+  const transaction = TransactionInfo.load(event.transaction.hash.toHexString());
+
+  if (transaction) {
+    const membershipDaoInstance = MembershipDao.load(transaction.dao.toHexString());
+    if (membershipDaoInstance != null) {
+      membershipDaoInstance.totalHolders = membershipDaoInstance.totalHolders.plus(BIG_INT_ONE);
+      membershipDaoInstance.token = transaction.token;
+      membershipDaoInstance.save();
+    }
+  }
+
+  const userAddress = event.params.to.toHexString();
+  let userInstance = User.load(userAddress);
+  if (userInstance == null && event.params.from == ZERO_ADDRESS) {
+    userInstance = new User(userAddress);
+    if (transaction) {
+      userInstance.dao = transaction.dao.toHexString();
+    }
+    userInstance.userAddress = event.params.to;
+    userInstance.save();
+  }
 
 }

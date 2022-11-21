@@ -1,10 +1,4 @@
-enum VoteStatus {
-    NA,
-    yes,
-    no,
-}
-
-type MembershipDAO @entity {
+type MembershipDao @entity {
     id: ID! # Address of new created Membership DAO
     token: Bytes! # Address of DAO token
     voting: Bytes! # Voting contract address
@@ -24,20 +18,22 @@ type Voting @entity {
     id: ID! # Address of voting contract
     currentVoteLength: BigInt!
     creator: Bytes!
+    dao: Bytes!
 }
 
 type Vote @entity {
     id: ID! # Address of voting contract + Vote Id
     voteId: BigInt
-    startDate: BigDecimal!
-    snapshotBlock: BigDecimal!
-    quorumRequired: BigDecimal!
-    totalYes: BigDecimal!
-    totalNo: BigDecimal!
-    executionScript: String!
+    startDate: BigInt!
+    snapshotBlock: BigInt!
+    quorumRequired: BigInt!
+    totalYes: BigInt!
+    totalNo: BigInt!
+    executionScript: Bytes!
     executed: Boolean
     metadata: String!
-    executionBlock: BigInt!
+    executionDate: BigInt!
+    creator: Bytes!
 }
 
 type UserVote @entity {
@@ -45,11 +41,18 @@ type UserVote @entity {
     dao: Bytes!
     voteId: BigInt!
     voted: Boolean
-    voteStatus: VoteStatus
+    voteStatus: String
 }
 
 type User @entity {
     id: ID! # User address + MembershipDAO address
-    dao: MembershipDAO!
+    dao: MembershipDao!
     userAddress: Bytes!
+}
+
+type TransactionInfo @entity { 
+    id: ID!
+    dao: Bytes!
+    voting: Bytes!
+    token: Bytes!
 }

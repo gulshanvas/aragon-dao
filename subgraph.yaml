@@ -8,18 +8,24 @@ dataSources:
     source:
       address: "0x58520f9087761d60dcf9895bd5dad7f2bb76f01d"
       abi: MembershipTemplate
+      startBlock: 29095640
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
-        - DeployDao
-        - SetupDao
-        - DeployToken
-        - InstalledApp
+        - Token
+        - MembershipDao
+        - Transaction
+        - Voting
+        - User
       abis:
         - name: MembershipTemplate
           file: ./abis/MembershipTemplate.json
+        - name: Token
+          file: ./abis/Token.json
+        - name: Voting
+          file: ./abis/Voting.json
       eventHandlers:
         - event: DeployDao(address)
           handler: handleDeployDao
@@ -41,9 +47,14 @@ templates:
       file: ./src/voting.ts
       entities:
         - Voting
+        - User
+        - UserVote
+        - Token
       abis:
         - name: Voting
           file: ./abis/Voting.json
+        - name: Token
+          file: ./abis/Token.json
       eventHandlers:
         - event: StartVote(indexed uint256,indexed address,string)
           handler: handleNewVoteProposal

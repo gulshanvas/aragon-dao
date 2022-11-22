@@ -1,4 +1,4 @@
-import { Address, BigInt } from "@graphprotocol/graph-ts"
+import { Address, BigInt, log } from "@graphprotocol/graph-ts"
 import {
   DeployDao,
 } from "../generated/MembershipTemplate/MembershipTemplate"
@@ -35,10 +35,11 @@ export function createToken(address: Address): Token {
    * populates name, symbol and decimals fields of Token instance.
    */
 
+  log.info('In createToken {} ',[address.toHexString()]);
+
   const tokenInstance = new Token(address.toHexString());
 
   const tokenContractInstance = TokenContract.bind(address);
-
   tokenInstance.name = tokenContractInstance.try_name().value;
   tokenInstance.symbol = tokenContractInstance.try_symbol().value;
   tokenInstance.decimals = BigInt.fromI32(tokenContractInstance.try_decimals().value);

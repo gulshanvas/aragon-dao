@@ -22,6 +22,9 @@ export function handleDeployDao(event: DeployDao): void {
   const transaction = new TransactionInfo(event.transaction.hash.toHexString());
   transaction.dao = event.params.dao;
   transaction.voting = ZERO_ADDRESS;
+  transaction.token = ZERO_ADDRESS;
+
+  log.info('In handleDeployDao tx hash {}', [event.transaction.hash.toHexString()]);
 
   transaction.save();
 
@@ -41,6 +44,7 @@ export function handleDeployToken(event: DeployToken): void {
   let transaction = TransactionInfo.load(event.transaction.hash.toHexString());
 
   if (transaction && transaction.dao !== null) {
+    log.info('transaction dao {}', [transaction.dao.toHexString()]);
     let membershipDao = MembershipDao.load(transaction.dao.toHexString());
     if (membershipDao != null) {
       membershipDao.token = event.params.token;
@@ -113,25 +117,26 @@ export function handleDAOTokenTransfer(event: Transfer): void {
    *  - Increments `totalHolders` value by `1` in MembershipDao instance.
    */
   const transaction = TransactionInfo.load(event.transaction.hash.toHexString());
-
-  if (transaction) {
-    const membershipDaoInstance = MembershipDao.load(transaction.dao.toHexString());
-    if (membershipDaoInstance != null) {
-      membershipDaoInstance.totalHolders = membershipDaoInstance.totalHolders.plus(BIG_INT_ONE);
-      membershipDaoInstance.token = transaction.token;
-      membershipDaoInstance.save();
+  if (event.params.from.equals(ZERO_ADDRESS)) {
+    if (transaction) {
+      const membershipDaoInstance = MembershipDao.load(transaction.dao.toHexString());
+      if (membershipDaoInstance != null) {
+        membershipDaoInstance.totalHolders = membershipDaoInstance.totalHolders.plus(BIG_INT_ONE);
+        membershipDaoInstance.token = transaction.token;
+        membershipDaoInstance.save();
+      }
     }
-  }
-
-  const userAddress = event.params.to.toHexString();
-  if (transaction && transaction.dao) {
-    const userId = userAddress + "-" + transaction.dao.toHexString();
-    let userInstance = User.load(userId);
-    if (userInstance == null && event.params.from == ZERO_ADDRESS) {
-      userInstance = new User(userId);
-      userInstance.dao = transaction.dao.toHexString();
-      userInstance.userAddress = event.params.to;
-      userInstance.save();
+    
+    const userAddress = event.params.to.toHexString();
+    if (transaction && transaction.dao) {
+      const userId = userAddress + "-" + transaction.dao.toHexString();
+      let userInstance = User.load(userId);
+      if (userInstance == null && event.params.from == ZERO_ADDRESS) {
+        userInstance = new User(userId);
+        userInstance.dao = transaction.dao.toHexString();
+        userInstance.userAddress = event.params.to;
+        userInstance.save();
+      }
     }
   }
 

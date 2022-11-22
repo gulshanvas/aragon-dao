@@ -1,11 +1,12 @@
 import { newMockEvent } from "matchstick-as"
-import { ethereum, Address, Bytes } from "@graphprotocol/graph-ts"
+import { ethereum, Address, Bytes, BigInt } from "@graphprotocol/graph-ts"
 import {
   DeployDao,
   SetupDao,
   DeployToken,
   InstalledApp
 } from "../generated/MembershipTemplate/MembershipTemplate"
+import { Transfer } from "../generated/templates/Token/Token"
 
 export function createDeployDaoEvent(dao: Address): DeployDao {
   let deployDaoEvent = changetype<DeployDao>(newMockEvent())
@@ -59,4 +60,26 @@ export function createInstalledAppEvent(
   )
 
   return installedAppEvent
+}
+
+export function createDAOTokenTransfer(
+  from: Address,
+  to: Address,
+  value: BigInt
+): Transfer {
+  let transferEvent = changetype<Transfer>(newMockEvent())
+
+  transferEvent.parameters = new Array()
+
+  transferEvent.parameters.push(
+    new ethereum.EventParam("from", ethereum.Value.fromAddress(from))
+  )
+  transferEvent.parameters.push(
+    new ethereum.EventParam("to", ethereum.Value.fromAddress(to))
+  )
+  transferEvent.parameters.push(
+    new ethereum.EventParam("value", ethereum.Value.fromSignedBigInt(value))
+  )
+
+  return transferEvent
 }

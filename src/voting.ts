@@ -19,16 +19,15 @@ export function handleNewVoteProposal(event: StartVote): void {
    * available in event param. 
    */
   const votingContractAddress = event.address;
-
+  log.info('votingContractAddress {} ', [votingContractAddress.toHexString()]);
   const voteIdentifier = votingContractAddress.toHexString() + "-" + event.params.voteId.toHexString();
   const voteInstance = new Vote(voteIdentifier);
 
   const voteId = event.params.voteId;
-  voteInstance.voteId = event.params.voteId;
+  voteInstance.voteId = voteId;
   voteInstance.metadata = event.params.metadata;
 
   const voteContract = VotingContract.bind(votingContractAddress);
-
   const voteState = voteContract.getVote(voteId);
 
   voteInstance.startDate = voteState.getStartDate();
